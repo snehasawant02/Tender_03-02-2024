@@ -1,0 +1,32 @@
+import fitz  # PyMuPDF
+import requests
+from urllib.parse import urlparse
+
+def extract_links(pdf_path):
+    doc = fitz.open(pdf_path)
+
+    for page_number in range(doc.page_count):
+        page = doc[page_number]
+        links = page.get_links()
+
+        for link in links:
+            url = link.get('uri')
+            if url:
+                download_file(url)
+
+    doc.close()
+
+def download_file(url):
+    file_name = urlparse(url).path.split('/')[-1]
+
+    try:
+        response = requests.get(url)
+        with open(file_name, 'wb') as file:
+            file.write(response.content)
+        print(f"Downloaded: {file_name}")
+    except Exception as e:
+        print(f"Failed to download {url}: {str(e)}")
+
+# Example usage with the provided PDF path
+pdf_path = r'C:/Users/chait/Downloads/GeM-Bidding-5904592.pdf'
+extract_links(pdf_path)
