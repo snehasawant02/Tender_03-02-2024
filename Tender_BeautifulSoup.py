@@ -8,6 +8,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 import requests
+import re
 import fitz  # PyMuPDF
 from urllib.parse import urlparse
 pdf_folder = 'pdf_folder'
@@ -87,19 +88,26 @@ for tag in href_tags:
                     end = min(len(page.get_text("text")),
                               index + len(term_lower) + 50)  # Adjust the number of characters to extract after the search term
                     extracted_text = page.get_text("text")[start:end]
-                    extracted_text.get_links()
-                    for link in links:
-                        url = link.get('uri')
-                        if url:
-                            download_file(url)
-                    # Download the extracted text
-                    download_file(extracted_text, target_folder)
+                    pdf_number_match = re.search(r'\d+\.pdf', extracted_text)
+                    if pdf_number_match:
+                        pdf_number = pdf_number_match.group(0)
+                        print("PDF Number:", pdf_number)
+
+                        # Download the extracted text
+                        links = page.get_links()
+                        for link in links:
+                            url = link.get('uri')
+                            if pdf_number in url:
+                                print("Matching URL:", url)
+                                download_file(url)
 
 
-        def download_file(content, target_folder):
+
+
+        '''def download_file(url, target_folder):
             try:
                 # Check if content is a valid URL
-                response = requests.get(content)
+                response = requests.get(url)
                 response.raise_for_status()  # Raise an exception for bad responses (e.g., 404)
 
                 # Generate a unique file name based on the current timestamp
@@ -107,11 +115,24 @@ for tag in href_tags:
 
                 # Save the content as a PDF file
                 with open(file_name, 'wb') as file:
-                    file.write(response.content)
+                    file.write(response.url)
 
                 print(f"Downloaded: {file_name}")
             except requests.exceptions.RequestException as e:
-                print(f"Failed to download {content}: {str(e)}")
+                print(f"Failed to download {url}: {str(e)}")'''
+
+
+        def download_file(url):
+            try:
+                response = requests.get(url)
+                file_name = urlparse(url).path.split('/')[-1]
+                with open(file_name, 'wb') as file:
+                    file.write(response.content)
+                    file.write(response.url.encode())  # Write the URL as bytes
+                print(f"Downloaded: {file_name}")
+            except Exception as e:
+                print(f"Failed to download {url}: {str(e)}")
+
 
 
         search_terms = ["Minimum Wages Act", "Scope of work"]
