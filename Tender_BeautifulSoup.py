@@ -47,7 +47,7 @@ for tag in href_tags:
         pdf_folder_path = os.path.join(pdf_folder, f"pdf_{href.split('/')[-1]}")
         os.makedirs(pdf_folder_path, exist_ok=True)
         print(f"Downloading PDF from: {full_url}")
-        pdf_file_path = os.path.join(pdf_folder_path, 'document.pdf')
+        pdf_file_path = os.path.join(pdf_folder_path, f"{href.split('/')[-1]}.pdf")
         with open(pdf_file_path, 'wb') as pdf_file:
             pdf_file.write(requests.get(full_url).content)
 
@@ -126,10 +126,11 @@ for tag in href_tags:
             try:
                 response = requests.get(url)
                 file_name = urlparse(url).path.split('/')[-1]
-                with open(file_name, 'wb') as file:
+                pdf_file_path = os.path.join(pdf_folder_path, f"{file_name}")
+                with open(pdf_file_path, 'wb') as file:
                     file.write(response.content)
                     file.write(response.url.encode())  # Write the URL as bytes
-                print(f"Downloaded: {file_name}")
+                print(f"Downloaded: {pdf_file_path}")
             except Exception as e:
                 print(f"Failed to download {url}: {str(e)}")
 
